@@ -1,0 +1,8 @@
+[ 25%] Building CXX object CMakeFiles/BlackHole2D.dir/2D_lensing.cpp.obj
+2D_lensing.cpp
+[ 50%] Linking CXX executable BlackHole2D.exe
+[ 50%] Built target BlackHole2D
+[ 75%] Building CXX object CMakeFiles/BlackHole3D.dir/black_hole.cpp.obj
+black_hole.cpp
+[100%] Linking CXX executable BlackHole3D.exe
+[100%] Built target BlackHole3D

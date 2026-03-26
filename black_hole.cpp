@@ -13,6 +13,9 @@
 #include <chrono>
 #include <fstream>
 #include <sstream>
+#include "imgui.h"
+#include "imgui_impl_glfw.h"
+#include "imgui_impl_opengl3.h"
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
 #endif
@@ -27,6 +30,9 @@ double c = 299792458.0;
 double G = 6.67430e-11;
 struct Ray;
 bool Gravity = false;
+float diskRotationSpeed = 1.0f;
+float diskInnerRadius = 3.0f;
+float diskOuterRadius = 20.0f;
 
 struct Camera {
     // Center the camera orbit on the black hole at (0, 0, 0)
@@ -35,7 +41,7 @@ struct Camera {
     float minRadius = 1e10f, maxRadius = 1e12f;
 
     float azimuth = 0.0f;
-    float elevation = M_PI / 2.0f;
+    float elevation = 1.22f; // ~20 degrees above disk plane
 
     float orbitSpeed = 0.01f;
     float panSpeed = 0.01f;
@@ -166,10 +172,10 @@ struct Engine {
     GLuint gridEBO = 0;
     int gridIndexCount = 0;
 
-    int WIDTH = 800;  // Window width
-    int HEIGHT = 600; // Window height
-    int COMPUTE_WIDTH  = 200;   // Compute resolution width
-    int COMPUTE_HEIGHT = 150;  // Compute resolution height
+    int WIDTH = 1280;  // Window width
+    int HEIGHT = 720;  // Window height
+    int COMPUTE_WIDTH  = 640;   // Compute resolution width
+    int COMPUTE_HEIGHT = 360;   // Compute resolution height
     float width = 100000000000.0f; // Width of the viewport in meters
     float height = 75000000000.0f; // Height of the viewport in meters
     
@@ -462,9 +468,8 @@ struct Engine {
         return prog;
     }
     void dispatchCompute(const Camera& cam) {
-        // determine target compute‐res
-        int cw = cam.moving ? COMPUTE_WIDTH  : 200;
-        int ch = cam.moving ? COMPUTE_HEIGHT : 150;
+        int cw = COMPUTE_WIDTH;
+        int ch = COMPUTE_HEIGHT;
 
         // 1) reallocate the texture if needed
         glBindTexture(GL_TEXTURE_2D, texture);
@@ -544,12 +549,11 @@ struct Engine {
         glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(data), &data);
     }
     void uploadDiskUBO() {
-        // disk
-        float r1 = SagA.r_s * 2.2f;    // inner radius just outside the event horizon
-        float r2 = SagA.r_s * 5.2f;   // outer radius of the disk
-        float num = 2.0;               // number of rays
-        float thickness = 1e9f;          // padding for std140 alignment
-        float diskData[4] = { r1, r2, num, thickness };
+        float r1 = SagA.r_s * diskInnerRadius;
+        float r2 = SagA.r_s * diskOuterRadius;
+        float time = (float)glfwGetTime() * diskRotationSpeed;
+        float thick = 1e9f;
+        float diskData[4] = { r1, r2, time, thick };
 
         glBindBuffer(GL_UNIFORM_BUFFER, diskUBO);
         glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(diskData), diskData);
@@ -615,21 +619,25 @@ void setupCameraCallbacks(GLFWwindow* window) {
     glfwSetWindowUserPointer(window, &camera);
 
     glfwSetMouseButtonCallback(window, [](GLFWwindow* win, int button, int action, int mods) {
+        if (ImGui::GetIO().WantCaptureMouse) return;
         Camera* cam = (Camera*)glfwGetWindowUserPointer(win);
         cam->processMouseButton(button, action, mods, win);
     });
 
     glfwSetCursorPosCallback(window, [](GLFWwindow* win, double x, double y) {
+        if (ImGui::GetIO().WantCaptureMouse) return;
         Camera* cam = (Camera*)glfwGetWindowUserPointer(win);
         cam->processMouseMove(x, y);
     });
 
     glfwSetScrollCallback(window, [](GLFWwindow* win, double xoffset, double yoffset) {
+        if (ImGui::GetIO().WantCaptureMouse) return;
         Camera* cam = (Camera*)glfwGetWindowUserPointer(win);
         cam->processScroll(xoffset, yoffset);
     });
 
     glfwSetKeyCallback(window, [](GLFWwindow* win, int key, int scancode, int action, int mods) {
+        if (ImGui::GetIO().WantCaptureKeyboard) return;
         Camera* cam = (Camera*)glfwGetWindowUserPointer(win);
         cam->processKey(key, scancode, action, mods);
     });
@@ -639,70 +647,83 @@ void setupCameraCallbacks(GLFWwindow* window) {
 // -- MAIN -- //
 int main() {
     setupCameraCallbacks(engine.window);
-    vector<unsigned char> pixels(engine.WIDTH * engine.HEIGHT * 3);
 
-    auto t0 = Clock::now();
-    lastPrintTime = chrono::duration<double>(t0.time_since_epoch()).count();
+    // Init ImGui
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGui_ImplGlfw_InitForOpenGL(engine.window, true);
+    ImGui_ImplOpenGL3_Init("#version 430");
+    ImGui::GetIO().FontGlobalScale = 1.3f;
 
     double lastTime = glfwGetTime();
-    int   renderW  = 800, renderH = 600, numSteps = 80000;
     while (!glfwWindowShouldClose(engine.window)) {
-        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);  // optional, but good practice
+        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        double now   = glfwGetTime();
-        double dt    = now - lastTime;   // seconds since last frame
-        lastTime     = now;
+        double now = glfwGetTime();
+        double dt  = now - lastTime;
+        lastTime   = now;
 
         // Gravity
         for (auto& obj : objects) {
             for (auto& obj2 : objects) {
-                if (&obj == &obj2) continue; // skip self-interaction
-                 float dx  = obj2.posRadius.x - obj.posRadius.x;
-                 float dy = obj2.posRadius.y - obj.posRadius.y;
-                 float dz = obj2.posRadius.z - obj.posRadius.z;
-                 float distance = sqrt(dx * dx + dy * dy + dz * dz);
-                 if (distance > 0) {
-                        vector<double> direction = {dx / distance, dy / distance, dz / distance};
-                        //distance *= 1000;
-                        double Gforce = (G * obj.mass * obj2.mass) / (distance * distance);
-
-                        double acc1 = Gforce / obj.mass;
-                        std::vector<double> acc = {direction[0] * acc1, direction[1] * acc1, direction[2] * acc1};
-                        if (Gravity) {
-                            obj.velocity.x += acc[0];
-                            obj.velocity.y += acc[1];
-                            obj.velocity.z += acc[2];
-
-                            obj.posRadius.x += obj.velocity.x;
-                            obj.posRadius.y += obj.velocity.y;
-                            obj.posRadius.z += obj.velocity.z;
-                            cout << "velocity: " <<obj.velocity.x<<", " <<obj.velocity.y<<", " <<obj.velocity.z<<endl;
-                        }
+                if (&obj == &obj2) continue;
+                float dx  = obj2.posRadius.x - obj.posRadius.x;
+                float dy = obj2.posRadius.y - obj.posRadius.y;
+                float dz = obj2.posRadius.z - obj.posRadius.z;
+                float distance = sqrt(dx * dx + dy * dy + dz * dz);
+                if (distance > 0) {
+                    vector<double> direction = {dx / distance, dy / distance, dz / distance};
+                    double Gforce = (G * obj.mass * obj2.mass) / (distance * distance);
+                    double acc1 = Gforce / obj.mass;
+                    std::vector<double> acc = {direction[0] * acc1, direction[1] * acc1, direction[2] * acc1};
+                    if (Gravity) {
+                        obj.velocity.x += acc[0];
+                        obj.velocity.y += acc[1];
+                        obj.velocity.z += acc[2];
+                        obj.posRadius.x += obj.velocity.x;
+                        obj.posRadius.y += obj.velocity.y;
+                        obj.posRadius.z += obj.velocity.z;
                     }
+                }
             }
         }
 
-
-
-        // ---------- GRID ------------- //
-        // 2) rebuild grid mesh on CPU
-        engine.generateGrid(objects);
-        // 5) overlay the bent grid
-        mat4 view = lookAt(camera.position(), camera.target, vec3(0,1,0));
-        mat4 proj = perspective(radians(60.0f), float(engine.COMPUTE_WIDTH)/engine.COMPUTE_HEIGHT, 1e9f, 1e14f);
-        mat4 viewProj = proj * view;
-        engine.drawGrid(viewProj);
-
-        // ---------- RUN RAYTRACER ------------- //
+        // ---------- RAY TRACER (background) ---------- //
         glViewport(0, 0, engine.WIDTH, engine.HEIGHT);
         engine.dispatchCompute(camera);
         engine.drawFullScreenQuad();
 
-        // 6) present to screen
+        // ---------- SPACETIME GRID (overlay) ---------- //
+        engine.generateGrid(objects);
+        mat4 view = lookAt(camera.position(), camera.target, vec3(0,1,0));
+        mat4 proj = perspective(radians(60.0f), float(engine.WIDTH)/float(engine.HEIGHT), 1e9f, 1e14f);
+        mat4 viewProj = proj * view;
+        engine.drawGrid(viewProj);
+
+        // ---------- IMGUI (sliders) ---------- //
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+
+        ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_FirstUseEver);
+        ImGui::SetNextWindowSize(ImVec2(320, 0), ImGuiCond_FirstUseEver);
+        ImGui::Begin("Accretion Disk");
+        ImGui::SliderFloat("Rotation Speed", &diskRotationSpeed, 0.0f, 5.0f, "%.2f");
+        ImGui::SliderFloat("Inner Radius (r_s)", &diskInnerRadius, 1.5f, 10.0f, "%.1f");
+        ImGui::SliderFloat("Outer Radius (r_s)", &diskOuterRadius, 5.0f, 50.0f, "%.1f");
+        ImGui::End();
+
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
         glfwSwapBuffers(engine.window);
         glfwPollEvents();
     }
+
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
 
     glfwDestroyWindow(engine.window);
     glfwTerminate();

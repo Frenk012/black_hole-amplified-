@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cmake --version)",
+      "Bash(git --version)",
+      "Bash(vcpkg version:*)",
+      "Read(//c/Program Files/CMake/bin/**)",
+      "Read(//c/Program Files \\(x86\\)/CMake/bin/**)",
+      "Bash(\"/c/Program Files \\(x86\\)/Microsoft Visual Studio/Installer/vswhere.exe\" -latest -property installationPath)",
+      "Bash(\"/c/Program Files \\(x86\\)/Microsoft Visual Studio/Installer/vswhere.exe\" -products '*' -latest -property installationPath)",
+      "Bash(git clone:*)",
+      "Bash(/c/vcpkg/bootstrap-vcpkg.bat)",
+      "Bash(/c/vcpkg/vcpkg.exe install:*)",
+      "Bash(\"/c/vcpkg/downloads/tools/cmake-3.31.10-windows/cmake-3.31.10-windows-x86_64/bin/cmake.exe\" -B build -S . -DCMAKE_TOOLCHAIN_FILE=\"C:/vcpkg/scripts/buildsystems/vcpkg.cmake\")",
+      "Read(//c/Program Files \\(x86\\)/Microsoft Visual Studio/18/BuildTools/VC/Auxiliary/Build//**)",
+      "Read(//c/Program Files \\(x86\\)/Microsoft Visual Studio/18/BuildTools//**)",
+      "Bash(cmd.exe /c \"call \"\"C:\\\\Program Files \\(x86\\)\\\\Microsoft Visual Studio\\\\18\\\\BuildTools\\\\VC\\\\Auxiliary\\\\Build\\\\vcvarsall.bat\"\" x64 && \"\"C:\\\\vcpkg\\\\downloads\\\\tools\\\\cmake-3.31.10-windows\\\\cmake-3.31.10-windows-x86_64\\\\bin\\\\cmake.exe\"\" -B build -S \"\"c:\\\\Users\\\\franc\\\\IdeaProjects\\\\black_hole-amplified\"\" -DCMAKE_TOOLCHAIN_FILE=\"\"C:\\\\vcpkg\\\\scripts\\\\buildsystems\\\\vcpkg.cmake\"\" -G \"\"NMake Makefiles\"\"\")"
+    ]
+  }
+}

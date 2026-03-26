@@ -1,0 +1,114 @@
+-- Running vcpkg install
+Detecting compiler hash for triplet x64-windows...
+Compiler found: C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.50.35717/bin/Hostx64/x64/cl.exe
+The following packages will be built and installed:
+  * egl-registry:x64-windows@2025-05-27
+    glew:x64-windows@2.3.1
+    glfw3:x64-windows@3.4#1
+    glm:x64-windows@1.0.3
+    imgui[core,glfw-binding,opengl3-binding]:x64-windows@1.92.6
+  * opengl:x64-windows@2022-12-04#3
+  * opengl-registry:x64-windows@2026-01-26
+  * vcpkg-cmake:x64-windows@2024-04-23
+  * vcpkg-cmake-config:x64-windows@2024-05-23
+Additional packages (*) will be modified to complete this operation.
+Restored 9 package(s) from C:\Users\franc\AppData\Local\vcpkg\archives in 255 ms. Use --debug to see more details.
+Installing 1/9 vcpkg-cmake-config:x64-windows@2024-05-23...
+vcpkg-cmake-config:x64-windows@2024-05-23 package ABI: 465a9fe8b4302d602c7128b748bf9176fdb3ecff756134f563ef5362a7b7b94b
+Elapsed time to handle vcpkg-cmake-config:x64-windows: 67.7 ms
+Installing 2/9 vcpkg-cmake:x64-windows@2024-04-23...
+vcpkg-cmake:x64-windows@2024-04-23 package ABI: e8e8587a3e4913ed19997c863e9788aa28468dd6815fdde0f779fcdf59604867
+Elapsed time to handle vcpkg-cmake:x64-windows: 78.3 ms
+Installing 3/9 egl-registry:x64-windows@2025-05-27...
+egl-registry:x64-windows@2025-05-27 package ABI: 2bb3d798a3a5b1095ccc71dc57d6ee127db20504951e7639381a9f8ef869056e
+Elapsed time to handle egl-registry:x64-windows: 16 ms
+Installing 4/9 opengl-registry:x64-windows@2026-01-26...
+opengl-registry:x64-windows@2026-01-26 package ABI: 5dfd4147cd0c65b90680c5be1742462acf2c6e6e4b3d977bb84239a2784ad242
+Elapsed time to handle opengl-registry:x64-windows: 63.7 ms
+Installing 5/9 opengl:x64-windows@2022-12-04#3...
+opengl:x64-windows@2022-12-04#3 package ABI: 16030538e5b4ec645967cc67e95a93b480c7a5d4605ea5043a80fbab0db4048f
+Elapsed time to handle opengl:x64-windows: 31.5 ms
+Installing 6/9 glew:x64-windows@2.3.1...
+glew:x64-windows@2.3.1 package ABI: fff600bf094d35d666c685ac67731c858680e8eead6523065c1e1c0b3bd08d13
+Elapsed time to handle glew:x64-windows: 124 ms
+Installing 7/9 glfw3:x64-windows@3.4#1...
+glfw3:x64-windows@3.4#1 package ABI: 2f0a93781f0b2ad6b1694acdbb7baeb1ee7867054cc78d33857969186712fa0a
+Elapsed time to handle glfw3:x64-windows: 110 ms
+Installing 8/9 glm:x64-windows@1.0.3...
+glm:x64-windows@1.0.3 package ABI: e73721ab43e1f048908c6982068f443c1fb403cd1abb4ebb14adc30246167105
+Elapsed time to handle glm:x64-windows: 174 ms
+Installing 9/9 imgui[core,glfw-binding,opengl3-binding]:x64-windows@1.92.6...
+imgui[core,glfw-binding,opengl3-binding]:x64-windows@1.92.6 package ABI: d5a882372e2d6a63fb3f97f0f84a7a5a62d5a908a25968419831e2072b45c373
+Elapsed time to handle imgui:x64-windows: 156 ms
+Installed contents are licensed to you by owners. Microsoft is not responsible for, nor does it grant any licenses to, third-party packages.
+Some packages did not declare an SPDX license. Check the `copyright` file for each package for more information about their licensing.
+Packages installed in this vcpkg installation declare the following licenses:
+Apache-2.0
+MIT
+Zlib
+glew provides CMake targets:
+
+  # Legacy CMake find module
+  find_package(GLEW REQUIRED)
+  target_link_libraries(main PRIVATE GLEW::GLEW)
+
+  # Modern CMake config package
+  find_package(GLEW CONFIG REQUIRED)
+  target_link_libraries(main PRIVATE GLEW::GLEW)
+
+glew provides pkg-config modules:
+
+  # The OpenGL Extension Wrangler library
+  glew
+
+glfw3 provides CMake targets:
+
+  # this is heuristically generated, and may not be correct
+  find_package(glfw3 CONFIG REQUIRED)
+  target_link_libraries(main PRIVATE glfw)
+
+glfw3 provides pkg-config modules:
+
+  # A multi-platform library for OpenGL, window and input
+  glfw3
+
+The package glm provides CMake targets:
+
+    find_package(glm CONFIG REQUIRED)
+    target_link_libraries(main PRIVATE glm::glm)
+
+    # Or use the header-only version
+    find_package(glm CONFIG REQUIRED)
+    target_link_libraries(main PRIVATE glm::glm-header-only)
+
+imgui provides CMake targets:
+
+  # this is heuristically generated, and may not be correct
+  find_package(imgui CONFIG REQUIRED)
+  target_link_libraries(main PRIVATE imgui::imgui)
+
+All requested installations completed successfully in: 824 ms
+-- Running vcpkg install - done
+-- The C compiler identification is MSVC 19.50.35728.0
+-- The CXX compiler identification is MSVC 19.50.35728.0
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.50.35717/bin/Hostx64/x64/cl.exe - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: C:/Program Files (x86)/Microsoft Visual Studio/18/BuildTools/VC/Tools/MSVC/14.50.35717/bin/Hostx64/x64/cl.exe - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Failed
+-- Looking for pthread_create in pthreads
+-- Looking for pthread_create in pthreads - not found
+-- Looking for pthread_create in pthread
+-- Looking for pthread_create in pthread - not found
+-- Found Threads: TRUE
+-- Found OpenGL: opengl32
+-- Configuring done (5.8s)
+-- Generating done (0.0s)
+-- Build files have been written to: C:/Users/franc/IdeaProjects/black_hole-amplified/build

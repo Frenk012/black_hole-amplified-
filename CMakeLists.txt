@@ -9,9 +9,11 @@ find_package(GLEW REQUIRED)
 find_package(glfw3 CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_package(OpenGL REQUIRED)
+find_package(imgui CONFIG REQUIRED)
 
 # Common dependencies
 set(DEPS glfw GLEW::GLEW glm::glm OpenGL::GL)
+set(DEPS_3D ${DEPS} imgui::imgui)
 
 # 2D Lensing executable
 add_executable(BlackHole2D 2D_lensing.cpp)
@@ -20,7 +22,7 @@ target_include_directories(BlackHole2D PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
 # 3D Black Hole executable
 add_executable(BlackHole3D black_hole.cpp)
-target_link_libraries(BlackHole3D PRIVATE ${DEPS})
+target_link_libraries(BlackHole3D PRIVATE ${DEPS_3D})
 target_include_directories(BlackHole3D PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
 # Shader files (copy to output dir)
